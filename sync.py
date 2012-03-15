@@ -32,7 +32,7 @@ if __name__ == '__main__':
     ical_name = icalendar.calName()
     gcal_name = ical_name + '-sync'
  
-   all_calendars = gcalendar.cal_client.GetAllCalendarsFeed()
+    all_calendars = gcalendar.cal_client.GetAllCalendarsFeed()
 
     # Google calendar object that has to be synced with icalendar
     gcal_sync = None
