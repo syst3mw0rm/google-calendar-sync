@@ -63,7 +63,21 @@ class iCalCalendar:
 	# Return the calendar Name
 	def calName(self):
 		# Returning only the first x-wr-calname property
-		return self.cal.contents['x-wr-calname'][0].value
+		return self.cal.contents['x-wr-calname'][0].value or ''
+
+	# Return the summary of calendar
+	def calDescription(self):
+		return self.cal.contents['x-wr-caldesc'][0].value or ''
+
+	# Return the timezone of calendar
+	def calTimeZone(self):
+		return self.cal.contents['x-wr-timezone'][0].value or ''
+
+	# Return the color of calendar
+	def calColor(self):
+		return self.cal.contents['x-apple-calendar-color'][0].value or ''
+
+
 
 	# Return the list of events in the iCal Calendar.
 	def elements(self):
@@ -155,24 +169,11 @@ class iCalCalendar:
 
 		# Convert into a Google Calendar event.
 		try:
-			e.title = atom.Title(text=event['subject'])
-			e.extended_property.append(gdata.calendar.ExtendedProperty(name='local_uid', value=event['uid']))
-			e.content = atom.Content(text=event['description'])
-			e.where.append(gdata.calendar.Where(value_string=event['where']))
-			e.event_status = gdata.calendar.EventStatus()
+			e.title = atom.data.Title(text=event['subject'])
+			e.content = atom.data.Content(text=event['description'])
+			e.where.append(gdata.data.Where(value_string=event['where']))
+			e.event_status = gdata.data.EventStatus()
 			e.event_status.value = event['status']
-			if event.has_key('organizer'):
-				attendee = gdata.calendar.Who()
-				attendee.rel = 'ORGANIZER'
-				attendee.name = event['organizer']
-				attendee.email = event['mailto']
-				attendee.attendee_status = gdata.calendar.AttendeeStatus()
-				attendee.attendee_status.value = 'ACCEPTED'
-				if len(e.who) > 0:
-					e.who[0] = attendee
-				else:
-					e.who.append(attendee)
-			# TODO: handle list of attendees.
 			if event.has_key('rrule'):
 				# Recurring event.
 				recurrence_data = ('DTSTART;VALUE=DATE:%s\r\n'
@@ -181,22 +182,15 @@ class iCalCalendar:
 					self.format_datetime_recurring(event['start']), \
 					self.format_datetime_recurring(event['end']), \
 					event['rrule'])
-				e.recurrence = gdata.calendar.Recurrence(text=recurrence_data)
+				e.recurrence = gdata.data.Recurrence(text=recurrence_data)
 			else:
 				# Single-occurrence event.
 				if len(e.when) > 0:
-					e.when[0] = gdata.calendar.When(start_time=self.format_datetime(event['start']), \
+					e.when[0] = gdata.data.When(start_time=self.format_datetime(event['start']), \
 									end_time=self.format_datetime(event['end']))
 				else:
-					e.when.append(gdata.calendar.When(start_time=self.format_datetime(event['start']), \
+					e.when.append(gdata.data.When(start_time=self.format_datetime(event['start']), \
 									  end_time=self.format_datetime(event['end'])))
-				if event.has_key('alarm'):
-					# Set reminder.
-					for a_when in e.when:
-						if len(a_when.reminder) > 0:
-							a_when.reminder[0].minutes = event['alarm']
-						else:
-							a_when.reminder.append(gdata.calendar.Reminder(minutes=event['alarm']))
 		except Exception, e:
 			print >> sys.stderr, 'ERROR: couldn\'t create gdata event object: ', event['subject']
 			print type(e), e.args, e
