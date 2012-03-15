@@ -28,11 +28,11 @@ if __name__ == '__main__':
     # Login into Google Calendar
     gcalendar._ClientLogin(g_username,  g_password)
 
-    # Gcal name which has to be synchronized with the ical
-    ical_name = icalendar.calName()
-    gcal_name = ical_name + '-sync'
- 
+
     all_calendars = gcalendar.cal_client.GetAllCalendarsFeed()
+
+    # Gcal name which has to be synchronized with the ical
+    gcal_name = icalendar.calName() + '-sync'
 
     # Google calendar object that has to be synced with icalendar
     gcal_sync = None
@@ -44,7 +44,7 @@ if __name__ == '__main__':
 		break
 
     if gcal_sync is None:
-	gcal_sync = gcalendar._InsertCalendar(gcal_name,'This calendar contains practice and game times', 'America/Los_Angeles', hidden=False, location='Oakland', color='#2952A3')
+	gcal_sync = gcalendar._InsertCalendar(gcal_name, icalendar.calDescription(), icalendar.calTimeZone(), hidden=False, location='Oakland', color=icalendar.calColor())
 
 #    gcal_href = gcal_sync.GetEditLink()
     gcal_href = gcal_sync.content.src
