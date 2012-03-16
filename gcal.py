@@ -166,6 +166,18 @@ class GoogleCalendar:
         else:
             print '\tUnexpected Error: %s' % msg.body
 
+  def _DeleteCalendar(self, cal):
+    """Deletes a calendar. Note: the primary calendar cannot be deleted"""
+    print 'Deleting calendar: %s' % cal.title.text
+    try:
+      self.cal_client.Delete(cal.GetEditLink().href)
+      print cal.GetEditLink().href
+    except gdata.client.RequestError, msg:
+      if msg.body.startswith('Cannot remove primary calendar'):
+          print '\t%s' % msg.body
+      else:
+          print '\tUnexpected Error: %s' % msg.body
+
   def _InsertSubscription(self,
       id='python.gcal.test%40gmail.com'):
     """Subscribes to the calendar with the specified ID."""
