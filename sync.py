@@ -8,6 +8,7 @@ import gdata.calendar
 config_file = 'config.json'
 
 if __name__ == '__main__':
+
 ### Parse configuration file  ###
     config = ConfigParser.ConfigParser()
     # Get mandatory parameters
@@ -24,33 +25,29 @@ if __name__ == '__main__':
 ### Initialization ###
     gcalendar = GoogleCalendar()
     icalendar = iCalCalendar(ical_path)
-    
+
     # Login into Google Calendar
     gcalendar._ClientLogin(g_username,  g_password)
 
-
-    all_calendars = gcalendar.cal_client.GetAllCalendarsFeed()
+    all_calendars = gcalendar.cal_client.GetOwnCalendarsFeed()
 
     # Gcal name which has to be synchronized with the ical
     gcal_name = icalendar.calName() + '-sync'
 
-    # Google calendar object that has to be synced with icalendar
-    gcal_sync = None
-
     for a_calendar in all_calendars.entry:
-	if a_calendar.title.text == gcal_name:
-		print 'Found the calendar'	
-		gcal_sync = a_calendar
-		break
+        print 'Found the calendar %s' % a_calendar.title.text
+        if a_calendar.title.text == gcal_name:
+            print '*Found the calendar %s' % a_calendar.title.text
+            a_c = a_calendar
+            gcalendar._DeleteCalendar(a_c)
 
-    if gcal_sync is None:
-	gcal_sync = gcalendar._InsertCalendar(gcal_name, icalendar.calDescription(), icalendar.calTimeZone(), hidden=False, location='Oakland', color=icalendar.calColor())
-
-#    gcal_href = gcal_sync.GetEditLink()
+    gcal_sync = gcalendar._InsertCalendar(gcal_name, icalendar.calDescription(), icalendar.calTimeZone(), hidden=False, location='Oakland', color=icalendar.calColor())
     gcal_href = gcal_sync.content.src
 
+
+### One way synchronize the iCalendar
     # insert all elements of icalendar into the gcal_sync
     for event in icalendar.elements():
         e = gdata.calendar.data.CalendarEventEntry()
         icalendar.ical2gcal(e, event)
-	new_event = gcalendar.cal_client.InsertEvent(e, insert_uri=gcal_href)
+        new_event = gcalendar.cal_client.InsertEvent(e, insert_uri=gcal_href)
